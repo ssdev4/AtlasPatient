@@ -39,7 +39,7 @@ namespace AtlasPatient.Core.Services
             var jsonResponse = await response.Content.ReadAsStringAsync();
             var authResponse = JsonSerializer.Deserialize<AuthResponse>(jsonResponse);
 
-            return authResponse.Jwt;
+            return authResponse.jwt;
         }
     }
 }

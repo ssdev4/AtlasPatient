@@ -13,6 +13,7 @@ namespace AtlasPatient.Data.IRepository
         Task<PatientDetail> GetPatientDetailAsync(int id);
         Task<int> AddPatientAsync(PatientDetail PatientDetail);
         Task AddPatientLabVisitsAsync(IEnumerable<PatientLabVisit> labVisits);
+        Task AddPatientLabResultsAsync(IEnumerable<PatientLabResult> labResults);
         Task AddPatientMedicationsAsync(IEnumerable<PatientMedication> medications);
         Task AddPatientVaccinationsAsync(IEnumerable<PatientVaccinationDatum> vaccinations);
     }

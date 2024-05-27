@@ -2,7 +2,8 @@
 using System.Threading.Tasks;
 using AtlasPatient.Core.Services;
 using AtlasPatient.Models.DTOs;
-
+using MassTransit;
+using AtlasPatient.API.DataInjest;
 
 namespace AtlasPatient.API.Controllers
 {
@@ -11,10 +12,12 @@ namespace AtlasPatient.API.Controllers
     public class PatientsController : ControllerBase
     {
         private readonly IPatientService _patientService;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public PatientsController(IPatientService patientService)
+        public PatientsController(IPatientService patientService, IPublishEndpoint publishEndpoint)
         {
             _patientService = patientService;
+            _publishEndpoint = publishEndpoint;
         }
 
         [HttpGet("/exists")]
@@ -41,8 +44,26 @@ namespace AtlasPatient.API.Controllers
         [HttpPost]
         public async Task<ActionResult<int>> RegisterNewPatient([FromBody] PatientDto patientDto)
         {
-            var patientId = await _patientService.RegisterNewPatientAsync(patientDto);
-            return CreatedAtAction(nameof(GetPatientData), new { id = patientId }, patientId);
+            try
+            {
+                var patientId = await _patientService.RegisterNewPatientAsync(patientDto);
+
+                if(patientId != null)
+                {
+                    await _publishEndpoint.Publish(new DataInjestEvent
+                    {
+                        PatientID = patientId,
+                        SSN = patientDto.Ssn,
+                        DateTime = DateTime.Now
+                    });
+                }
+                return CreatedAtAction(nameof(GetPatientData), new { id = patientId }, patientId);
+            }
+            catch (Exception ex)
+            {
+                return Ok();
+            }
+            
         }
     }
 }

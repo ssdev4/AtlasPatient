@@ -17,6 +17,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.19" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.2.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,5 +30,11 @@
     <ProjectReference Include="..\AtlasPatient.Models\AtlasPatient.Models.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="DataInjest\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DataInjest\" />
   </ItemGroup>
 </Project>

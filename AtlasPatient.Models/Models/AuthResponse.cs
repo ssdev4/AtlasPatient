@@ -8,6 +8,6 @@ namespace AtlasPatient.Models.Models
 {
     public class AuthResponse
     {
-        public string Jwt { get; set; }
+        public string jwt { get; set; }
     }
 }

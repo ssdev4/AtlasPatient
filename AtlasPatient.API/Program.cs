@@ -1,8 +1,10 @@
-﻿using AtlasPatient.Core.IServices;
+﻿using AtlasPatient.API.DataInjest;
+using AtlasPatient.Core.IServices;
 using AtlasPatient.Core.Services;
 using AtlasPatient.Data;
 using AtlasPatient.Data.IRepository;
 using AtlasPatient.Data.Repository;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +28,23 @@ builder.Services.AddHttpClient<IPatientService, PatientService>()
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+builder.Services.AddMassTransit(bcfg =>
+{
+    bcfg.SetKebabCaseEndpointNameFormatter();
+    bcfg.AddConsumer<DataInjestConsumer>();
+
+    bcfg.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(new Uri(builder.Configuration["ServiceBus:Host"]!), h => {
+            h.Username(builder.Configuration["ServiceBus:User"]);
+            h.Password(builder.Configuration["ServiceBus:Password"]);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 

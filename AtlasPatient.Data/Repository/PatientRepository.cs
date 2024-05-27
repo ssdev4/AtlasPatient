@@ -55,5 +55,11 @@ namespace AtlasPatient.Data.Repository
             _context.PatientVaccinationDatum.AddRange(vaccinations);
             await _context.SaveChangesAsync();
         }
+
+        public async Task AddPatientLabResultsAsync(IEnumerable<PatientLabResult> labResults)
+        {
+            _context.PatientLabResults.AddRange(labResults);
+            await _context.SaveChangesAsync();
+        }
     }
 }

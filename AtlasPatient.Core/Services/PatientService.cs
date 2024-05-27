@@ -18,13 +18,11 @@ namespace AtlasPatient.Core.Services
     {
         private readonly IPatientRepository _patientRepository;
         private readonly HttpClient _httpClient;
-        private readonly IAuthService _authService;
 
-        public PatientService(IPatientRepository patientRepository, HttpClient httpClient, IAuthService authService)
+        public PatientService(IPatientRepository patientRepository, HttpClient httpClient)
         {
             _patientRepository = patientRepository;
             _httpClient = httpClient;
-            _authService = authService;
         }
 
         public async Task<int?> IsExistingPatientAsync(string ssn)
@@ -75,21 +73,23 @@ namespace AtlasPatient.Core.Services
             return patientId;
         }
 
-        private async Task SaveLabVisitsAsync(string ssn, int patientId)
+        public async Task SaveLabVisitsAsync(string ssn, int patientId, string token)
         {
-            var token = await _authService.GetAuthTokenAsync();
-            //var response = await _httpClient.GetAsync($"https://testapi.mindware.us/patient-lab-visits?SSN={ssn}"); var request = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/patient-lab-visits?SSN={ssn}");
-            var request = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/patient-lab-visits?SSN={ssn}");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            // Get lab visits
+            var visitRequest = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/patient-lab-visits?SSN={ssn}");
+            visitRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            var labVisits = JsonSerializer.Deserialize<List<LabVisitDto>>(await response.Content.ReadAsStringAsync());
+            var visitResponse = await _httpClient.SendAsync(visitRequest);
+            visitResponse.EnsureSuccessStatusCode();
+            var visits = await visitResponse.Content.ReadAsStringAsync();
+            var labVisits = JsonSerializer.Deserialize<List<LabVisitDto>>(visits);
 
             var labVisitEntities = new List<PatientLabVisit>();
+            var labResultEntities = new List<PatientLabResult>();
+
             foreach (var visit in labVisits)
             {
-                labVisitEntities.Add(new PatientLabVisit
+                var labVisitEntity = new PatientLabVisit
                 {
                     PatientId = patientId,
                     LabName = visit.LabName,
@@ -97,15 +97,44 @@ namespace AtlasPatient.Core.Services
                     ResultDate = visit.ResultDate.ToString(),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+
+                labVisitEntities.Add(labVisitEntity);
+
+                // Fetching the Result Data
+                var resultRequest = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/Patient-lab-results?lab_visit_id={visit.id}");
+                resultRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var resultResponse = await _httpClient.SendAsync(resultRequest);
+                resultResponse.EnsureSuccessStatusCode();
+                var labResults = JsonSerializer.Deserialize<List<LabResultDto>>(await resultResponse.Content.ReadAsStringAsync());
+
+                foreach (var result in labResults)
+                {
+                    var labResultEntity = new PatientLabResult
+                    {
+                        LabVisitId = visit.id,
+                        TestName = result.TestName,
+                        TestResult = result.TestResult,
+                        TestObservation = result.TestObservation,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+
+                    labResultEntities.Add(labResultEntity);
+                }
+
             }
 
+            // Save lab visit entities to the database
             await _patientRepository.AddPatientLabVisitsAsync(labVisitEntities);
+            // Save lab result entities to the database
+            await _patientRepository.AddPatientLabResultsAsync(labResultEntities);
         }
 
-        private async Task SaveMedicationsAsync(string ssn, int patientId)
+
+        public async Task SaveMedicationsAsync(string ssn, int patientId, string token)
         {
-            var token = await _authService.GetAuthTokenAsync();
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/patient-vaccinations?SSN={ssn}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -123,9 +152,8 @@ namespace AtlasPatient.Core.Services
             await _patientRepository.AddPatientMedicationsAsync(medications);
         }
 
-        private async Task SaveVaccinationsAsync(string ssn, int patientId)
+        public async Task SaveVaccinationsAsync(string ssn, int patientId, string token)
         {
-            var token = await _authService.GetAuthTokenAsync();
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/patient-medications?SSN={ssn}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
