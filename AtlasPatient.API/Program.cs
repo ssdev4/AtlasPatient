@@ -29,7 +29,6 @@ builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-
 builder.Services.AddMassTransit(bcfg =>
 {
     bcfg.SetKebabCaseEndpointNameFormatter();
@@ -42,7 +41,13 @@ builder.Services.AddMassTransit(bcfg =>
             h.Password(builder.Configuration["ServiceBus:Password"]);
         });
 
-        cfg.ConfigureEndpoints(context);
+        cfg.ReceiveEndpoint("data-injest-queue", e =>
+        {
+            e.ConfigureConsumer<DataInjestConsumer>(context);
+
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10))); 
+        });
+
     });
 });
 
