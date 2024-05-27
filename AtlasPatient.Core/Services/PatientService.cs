@@ -85,7 +85,6 @@ namespace AtlasPatient.Core.Services
             var labVisits = JsonSerializer.Deserialize<List<LabVisitDto>>(visits);
 
             var labVisitEntities = new List<PatientLabVisit>();
-            var labResultEntities = new List<PatientLabResult>();
 
             foreach (var visit in labVisits)
             {
@@ -94,14 +93,11 @@ namespace AtlasPatient.Core.Services
                     PatientId = patientId,
                     LabName = visit.LabName,
                     LabTestRequest = visit.LabTestRequest,
-                    ResultDate = visit.ResultDate.ToString(),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                labVisitEntities.Add(labVisitEntity);
-
-                // Fetching the Result Data
+                // Fetch lab results for each visit
                 var resultRequest = new HttpRequestMessage(HttpMethod.Get, $"https://testapi.mindware.us/Patient-lab-results?lab_visit_id={visit.id}");
                 resultRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -113,23 +109,22 @@ namespace AtlasPatient.Core.Services
                 {
                     var labResultEntity = new PatientLabResult
                     {
-                        LabVisitId = visit.id,
+                        LabVisit = labVisitEntity,
                         TestName = result.TestName,
                         TestResult = result.TestResult,
                         TestObservation = result.TestObservation,
                         CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
 
-                    labResultEntities.Add(labResultEntity);
+                    labVisitEntity.LabResults.Add(labResultEntity);
                 }
 
+                labVisitEntities.Add(labVisitEntity);
             }
 
-            // Save lab visit entities to the database
+            // Save all entities in a single batch operation
             await _patientRepository.AddPatientLabVisitsAsync(labVisitEntities);
-            // Save lab result entities to the database
-            await _patientRepository.AddPatientLabResultsAsync(labResultEntities);
         }
 
 

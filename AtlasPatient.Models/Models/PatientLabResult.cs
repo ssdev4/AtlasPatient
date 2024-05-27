@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AtlasPatient.Models.Models;
 
@@ -20,4 +21,7 @@ public partial class PatientLabResult
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    [ForeignKey("LabVisitId")]
+    public PatientLabVisit LabVisit { get; set; }
 }

@@ -38,6 +38,13 @@ namespace AtlasPatient.Data.Repository
             return PatientDetail.Id;
         }
 
+        public async Task<int> AddPatientLabVisitAsync(PatientLabVisit PatientLabVisit)
+        {
+            _context.PatientLabVisits.Add(PatientLabVisit);
+            await _context.SaveChangesAsync();
+            return PatientLabVisit.Id;
+        }
+
         public async Task AddPatientLabVisitsAsync(IEnumerable<PatientLabVisit> labVisits)
         {
             _context.PatientLabVisits.AddRange(labVisits);

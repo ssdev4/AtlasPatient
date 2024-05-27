@@ -28,12 +28,17 @@ namespace AtlasPatient.API.DataInjest
 
                 var token = await _authService.GetAuthTokenAsync();
 
+                // SSN is fixed here
                 await _patientService.SaveLabVisitsAsync("111111111", message.PatientID, token);
                 await _patientService.SaveMedicationsAsync("111111111", message.PatientID, token);
                 await _patientService.SaveVaccinationsAsync("111111111", message.PatientID, token);
+
+                Console.WriteLine("Date Injested Successfully...............");
+
             }
             catch (Exception ex)
             {
+                // Should log the exeception to more meaningfull place
                 Console.WriteLine("Error", ex);
             }
             

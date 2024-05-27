@@ -12,6 +12,7 @@ namespace AtlasPatient.Data.IRepository
         Task<int?> IsExistingPatientAsync(string ssn);
         Task<PatientDetail> GetPatientDetailAsync(int id);
         Task<int> AddPatientAsync(PatientDetail PatientDetail);
+        Task<int> AddPatientLabVisitAsync(PatientLabVisit labVisit);
         Task AddPatientLabVisitsAsync(IEnumerable<PatientLabVisit> labVisits);
         Task AddPatientLabResultsAsync(IEnumerable<PatientLabResult> labResults);
         Task AddPatientMedicationsAsync(IEnumerable<PatientMedication> medications);

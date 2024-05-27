@@ -18,4 +18,7 @@ public partial class PatientLabVisit
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public List<PatientLabResult> LabResults { get; set; } = new List<PatientLabResult>();
+
 }
