@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AtlasPatient.Data\AtlasPatient.Data.csproj" />
+    <ProjectReference Include="..\AtlasPatient.Models\AtlasPatient.Models.csproj" />
+  </ItemGroup>
 </Project>
