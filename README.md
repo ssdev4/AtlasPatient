@@ -1,6 +1,8 @@
 ﻿# Atlas Patient
 
-Atlas Patient is a project designed to check if a patient is registered, retrieve patient data, and register new patients. Additionally, it fetches data from an external source and ingests it into the local database. In case of failures during data retrieval, it retries the process multiple times before moving the instance to an error queue.
+Atlas Patient is a project designed to check if a patient is registered, retrieve patient data, and register new patients.
+Additionally, it fetches data from an external source and ingests it into the local database.
+In case of failures during data retrieval, it retries the process multiple times before moving the instance to an error queue.
 
 ## Tools
 
