@@ -27,7 +27,7 @@ builder.Services.AddHttpClient<IPatientService, PatientService>()
 
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddMassTransit(bcfg =>
 {
     bcfg.SetKebabCaseEndpointNameFormatter();

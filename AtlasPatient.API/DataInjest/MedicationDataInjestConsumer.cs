@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AtlasPatient.Core.IServices;
 using AtlasPatient.Core.Services;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace AtlasPatient.API.DataInjest
 {
@@ -9,11 +11,13 @@ namespace AtlasPatient.API.DataInjest
     {
         private readonly IPatientService _patientService;
         private readonly IAuthService _authService;
+        private readonly ILogger<MedicationDataInjestConsumer> _logger;
 
-        public MedicationDataInjestConsumer(IPatientService patientService, IAuthService authService)
+        public MedicationDataInjestConsumer(IPatientService patientService, IAuthService authService, ILogger<MedicationDataInjestConsumer> logger)
         {
             _patientService = patientService;
             _authService = authService;
+            _logger = logger;
         }
 
         public async Task Consume(ConsumeContext<MedicationDataInjestEvent> context)
@@ -24,10 +28,12 @@ namespace AtlasPatient.API.DataInjest
             try
             {
                 await _patientService.SaveMedicationsAsync("111111111", message.PatientID, token);
+                _logger.LogInformation($"Successfully processed medication data for PatientID: {message.PatientID}");
             }
             catch (Exception ex)
             {
-                // Log the error and handle retries if necessary
+                _logger.LogError(ex, $"Error processing medication data for PatientID: {message.PatientID}");
+                throw;  // Rethrow the exception to trigger the retry policy
             }
         }
     }
