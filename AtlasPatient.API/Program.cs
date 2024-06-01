@@ -28,11 +28,12 @@ builder.Services.AddHttpClient<IPatientService, PatientService>()
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
 builder.Services.AddMassTransit(bcfg =>
 {
     bcfg.SetKebabCaseEndpointNameFormatter();
-    bcfg.AddConsumer<DataInjestConsumer>();
+    bcfg.AddConsumer<LabVisitDataInjestConsumer>();
+    bcfg.AddConsumer<MedicationDataInjestConsumer>();
+    bcfg.AddConsumer<VaccinationDataInjestConsumer>();
 
     bcfg.UsingRabbitMq((context, cfg) =>
     {
@@ -41,13 +42,23 @@ builder.Services.AddMassTransit(bcfg =>
             h.Password(builder.Configuration["ServiceBus:Password"]);
         });
 
-        cfg.ReceiveEndpoint("data-injest-queue", e =>
+        cfg.ReceiveEndpoint("lab-visit-data-injest-queue", e =>
         {
-            e.ConfigureConsumer<DataInjestConsumer>(context);
-
-            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10))); 
+            e.ConfigureConsumer<LabVisitDataInjestConsumer>(context);
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
         });
 
+        cfg.ReceiveEndpoint("medication-data-injest-queue", e =>
+        {
+            e.ConfigureConsumer<MedicationDataInjestConsumer>(context);
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
+        });
+
+        cfg.ReceiveEndpoint("vaccination-data-injest-queue", e =>
+        {
+            e.ConfigureConsumer<VaccinationDataInjestConsumer>(context);
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
+        });
     });
 });
 

@@ -48,9 +48,21 @@ namespace AtlasPatient.API.Controllers
             {
                 var patientId = await _patientService.RegisterNewPatientAsync(patientDto);
 
-                if(patientId != null)
+                if (patientId != null)
                 {
-                    await _publishEndpoint.Publish(new DataInjestEvent
+                    await _publishEndpoint.Publish(new LabVisitDataInjestEvent
+                    {
+                        PatientID = patientId,
+                        SSN = patientDto.Ssn,
+                        DateTime = DateTime.Now
+                    });
+                    await _publishEndpoint.Publish(new MedicationDataInjestEvent
+                    {
+                        PatientID = patientId,
+                        SSN = patientDto.Ssn,
+                        DateTime = DateTime.Now
+                    });
+                    await _publishEndpoint.Publish(new VaccinationDataInjestEvent
                     {
                         PatientID = patientId,
                         SSN = patientDto.Ssn,
@@ -61,9 +73,9 @@ namespace AtlasPatient.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok();
+                return StatusCode(500, "Internal server error");
             }
-            
+
         }
     }
 }
